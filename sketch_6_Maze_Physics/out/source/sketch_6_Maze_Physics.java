@@ -148,7 +148,6 @@ boolean           gameStart                           = false;
 
 /* text font */
 PFont             f;
-int[][] pixelArray;
 int mazeImageWidth;
 int mazeImageHeight;
 Timer timer = null;
@@ -156,8 +155,7 @@ Timer timer = null;
 
 public void read_maze(){
   try {
-            // Specify the path to your black and white image
-            //String filePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Lab01\\sketch_6_Maze_Physics\\img\\maze1.png";
+            // Path to maze definition
             String filePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Lab01\\sketch_6_Maze_Physics\\maze\\hello_maze.maze";
             
             //maze = new FBox[230][230];
@@ -171,7 +169,6 @@ public void read_maze(){
             int row = 0;
             while (line != null) {
               System.out.println(line);
-              // read next line
               
               for(int col = 0; col < line.length(); col++){
                 if(line.charAt(col) == '1'){
@@ -192,6 +189,25 @@ public void read_maze(){
                   enemy.setStaticBody(true);
                   enemies.add(enemy);
                   world.add(enemy);
+                }
+                else if (line.charAt(col) == 's'){
+                  c1 = new FCircle(2.0f); // diameter is 2
+                  //c1.setPosition(edgeTopLeftX+2.5, edgeTopLeftY+worldHeight/2.0-3);
+                  c1.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
+                  c1.setFill(0, 255, 0);
+                  c1.setStaticBody(true);
+                  c1.setName("StartButton");
+                  world.add(c1);
+                }
+                else if(line.charAt(col) == 'f'){
+                  c2 = new FCircle(2.0f);
+                  //c2.setPosition(worldWidth-2.5, edgeTopLeftY+worldHeight/2.0);
+                  c2.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
+                  c2.setFill(200,0,0);
+                  c2.setStaticBody(true);
+                  c2.setSensor(true);
+                  c1.setName("FinishButton");
+                  world.add(c2);
                 }
               }
               row++;
@@ -252,29 +268,6 @@ public void setup(){
   
   read_maze();
 
-  timer = new Timer(30, new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-          
-      }
-  });
-  // Set maze barriers 
-  /*maze = new FBox[pixelArray.length][pixelArray[0].length];
-  for (int x = 0; x < pixelArray.length; x++) {
-    for (int y = 0; y < pixelArray[0].length; y++) {
-        
-        if(pixelArray[x][y] == 1){
-          maze[x][y] = new FBox(1, 1);
-          maze[x][y].setPosition(edgeTopLeftX+x, edgeTopLeftY+y); 
-          maze[x][y].setFill(0);
-          maze[x][y].setNoStroke();
-          maze[x][y].setStaticBody(true);
-          world.add(maze[x][y]);
-
-        }
-    }
-  }
-*/
-
   /*b1                  = new FBox(0.1, 5.0);
   b1.setPosition(edgeTopLeftX+worldWidth/4.0-2, edgeTopLeftY+worldHeight/2+1.5); 
   b1.setFill(0);
@@ -322,19 +315,10 @@ public void setup(){
   world.add(l1);*/
   
   /* Start Button */
-  c1                  = new FCircle(2.0f); // diameter is 2
-  c1.setPosition(edgeTopLeftX+2.5f, edgeTopLeftY+worldHeight/2.0f-3);
-  c1.setFill(0, 255, 0);
-  c1.setStaticBody(true);
-  world.add(c1);
+  
   
   /* Finish Button */
-  c2                  = new FCircle(2.0f);
-  c2.setPosition(worldWidth-2.5f, edgeTopLeftY+worldHeight/2.0f);
-  c2.setFill(200,0,0);
-  c2.setStaticBody(true);
-  c2.setSensor(true);
-  world.add(c2);
+  
   
   /* Game Box */
  /* g1                  = new FBox(1, 1);
@@ -345,13 +329,13 @@ public void setup(){
   world.add(g1);*/
   
   /* Game Ball */
-  g2                  = new FCircle(1);
+  /*g2                  = new FCircle(1);
   g2.setPosition(3, 4);
   g2.setDensity(80);
   g2.setFill(random(255),random(255),random(255));
   g2.setName("Widget");
   g2.setStaticBody(true);
-  world.add(g2);
+  world.add(g2);*/
   
   /* Setup the Virtual Coupling Contact Rendering Technique */
   s                   = new HVirtualCoupling((0.75f)); 
@@ -425,7 +409,7 @@ public void draw(){
 
 int direction = 1;
 int animation_steps = 0;
-int MAX_ENEMY_STEPS = 5;
+int MAX_ENEMY_STEPS = 6;
 public void animate(){
   //g2.adjustPosition(0.5, 0);
   for (FBody enemy : enemies){
