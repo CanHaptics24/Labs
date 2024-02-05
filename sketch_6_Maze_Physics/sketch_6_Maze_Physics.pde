@@ -26,8 +26,8 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.io.FileReader;
 import java.util.ArrayList;
-
-
+import javax.swing.Timer;
+import java.awt.event.*;
 /* scheduler definition ************************************************************************************************/ 
 private final ScheduledExecutorService scheduler      = Executors.newScheduledThreadPool(1);
 /* end scheduler definition ********************************************************************************************/ 
@@ -106,6 +106,7 @@ PFont             f;
 int[][] pixelArray;
 int mazeImageWidth;
 int mazeImageHeight;
+Timer timer = null;
 /* end elements definition *********************************************************************************************/  
 
 void read_maze(){
@@ -221,6 +222,12 @@ void setup(){
   world               = new FWorld();
   
   read_maze();
+
+  timer = new Timer(30, new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+          
+      }
+  });
   // Set maze barriers 
   /*maze = new FBox[pixelArray.length][pixelArray[0].length];
   for (int x = 0; x < pixelArray.length; x++) {
@@ -309,13 +316,13 @@ void setup(){
   world.add(g1);*/
   
   /* Game Ball */
-  /*g2                  = new FCircle(1);
+  g2                  = new FCircle(1);
   g2.setPosition(3, 4);
   g2.setDensity(80);
   g2.setFill(random(255),random(255),random(255));
   g2.setName("Widget");
   world.add(g2);
-  */
+  
   /* Setup the Virtual Coupling Contact Rendering Technique */
   s                   = new HVirtualCoupling((0.75)); 
   s.h_avatar.setDensity(4); 
@@ -366,6 +373,7 @@ void draw(){
       b3.setFill(0, 0, 0);
       b4.setFill(0, 0, 0);
       b5.setFill(0, 0, 0);*/
+      
     
     }
     else{
@@ -385,7 +393,8 @@ void draw(){
 }
 /* end draw section ****************************************************************************************************/
 
-
+int previousFrame = 0;
+int currentFrame = 0;
 
 /* simulation section **************************************************************************************************/
 class SimulationThread implements Runnable{
@@ -426,7 +435,12 @@ class SimulationThread implements Runnable{
       s.h_avatar.setSensor(true);
     }*/
   
-  
+    currentFrame++;
+    if(currentFrame - previousFrame > 1000){
+      previousFrame = currentFrame;
+      g2.adjustPosition(0.1, 0);
+    }
+    
   
      //Viscous layer codes 
     /*if (s.h_avatar.isTouchingBody(l1)){
