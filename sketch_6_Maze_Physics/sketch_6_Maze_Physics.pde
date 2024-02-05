@@ -19,7 +19,11 @@ import processing.serial.*;
 import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
 /* end library imports *************************************************************************************************/  
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 
 
 /* scheduler definition ************************************************************************************************/ 
@@ -82,6 +86,7 @@ FBox              b3;
 FBox              b4;
 FBox              b5;
 FBox              l1;
+FBox[][] maze;
 
 /* define start and stop button */
 FCircle           c1;
@@ -96,17 +101,60 @@ boolean           gameStart                           = false;
 
 /* text font */
 PFont             f;
-
+int[][] pixelArray;
+int mazeImageWidth;
+int mazeImageHeight;
 /* end elements definition *********************************************************************************************/  
 
-
+void read_image(){
+  try {
+            // Specify the path to your black and white image
+            String imagePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Lab01\\sketch_6_Maze_Physics\\img\\maze1.png";
+            
+            // Read the image
+            BufferedImage image = ImageIO.read(new File(imagePath));
+            
+            // Get the width and height of the image
+            mazeImageWidth = image.getWidth();
+            mazeImageHeight = image.getHeight();
+            
+            // Create a 2D array to store the pixel values
+            pixelArray = new int[mazeImageWidth][mazeImageHeight];
+            
+            // Loop through each pixel and populate the 2D array
+            for (int x = 0; x < mazeImageWidth; x++) {
+                for (int y = 0; y < mazeImageHeight; y++) {
+                    // Get the RGB value of the pixel
+                    int rgb = image.getRGB(x, y);
+                    
+                    // Extract the red component (assuming it's a grayscale image)
+                    int red = (rgb >> 16) & 0xFF;
+                    
+                    // Convert to binary (black = 1, white = 0)
+                    pixelArray[x][y] = (red == 0) ? 1 : 0;
+                    System.out.print(pixelArray[x][y]);
+                }
+                System.out.println("");
+            }
+            
+            // Now, 'pixelArray' contains 0s for white pixels and 1s for black pixels
+            
+            // You can use the 'pixelArray' for further processing or analysis
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+}
 
 /* setup section *******************************************************************************************************/
 void setup(){
   /* put setup code here, run once: */
-  
+  read_image();
+  System.out.println(mazeImageWidth);
+  System.out.println(mazeImageHeight);
   /* screen size definition */
-  size(1000, 400);
+  size(1000, 800);
+  //size((int)(mazeImageWidth) * 10, (int)(mazeImageHeight) * 10);
   
   /* set font type and size */
   f                   = createFont("Arial", 16, true);
@@ -145,8 +193,25 @@ void setup(){
   world               = new FWorld();
   
   
-  /* Set maze barriers */
-  b1                  = new FBox(1.0, 5.0);
+  // Set maze barriers 
+  maze = new FBox[pixelArray.length][pixelArray[0].length];
+  for (int x = 0; x < pixelArray.length; x++) {
+    for (int y = 0; y < pixelArray[0].length; y++) {
+        
+        if(pixelArray[x][y] == 1){
+          maze[x][y] = new FBox(1, 1);
+          maze[x][y].setPosition(edgeTopLeftX+x, edgeTopLeftY+y); 
+          maze[x][y].setFill(0);
+          maze[x][y].setNoStroke();
+          maze[x][y].setStaticBody(true);
+          world.add(maze[x][y]);
+
+        }
+    }
+  }
+
+
+  /*b1                  = new FBox(0.1, 5.0);
   b1.setPosition(edgeTopLeftX+worldWidth/4.0-2, edgeTopLeftY+worldHeight/2+1.5); 
   b1.setFill(0);
   b1.setNoStroke();
@@ -160,7 +225,7 @@ void setup(){
   b2.setStaticBody(true);
   world.add(b2);
    
-  b3                  = new FBox(1.0, 3.0);
+  b3                  = new FBox(0.5, 3.0);
   b3.setPosition(edgeTopLeftX+worldWidth/4.0+8, edgeTopLeftY+worldHeight/2+1.5); 
   b3.setFill(0);
   b3.setNoStroke();
@@ -179,10 +244,10 @@ void setup(){
   b5.setFill(0);
   b5.setNoStroke();
   b5.setStaticBody(true);
-  world.add(b5);
-   
+  world.add(b5);*/
+  
   /* Set viscous layer */
-  l1                  = new FBox(27,4);
+ /* l1                  = new FBox(27,4);
   l1.setPosition(24.5/2,8.5);
   l1.setFill(150,150,255,80);
   l1.setDensity(100);
@@ -190,7 +255,7 @@ void setup(){
   l1.setNoStroke();
   l1.setStatic(true);
   l1.setName("Water");
-  world.add(l1);
+  world.add(l1);*/
   
   /* Start Button */
   c1                  = new FCircle(2.0); // diameter is 2
@@ -208,21 +273,21 @@ void setup(){
   world.add(c2);
   
   /* Game Box */
-  g1                  = new FBox(1, 1);
+ /* g1                  = new FBox(1, 1);
   g1.setPosition(2, 4);
-  g1.setDensity(80);
+  //g1.setDensity(80);
   g1.setFill(random(255),random(255),random(255));
   g1.setName("Widget");
-  world.add(g1);
+  world.add(g1);*/
   
   /* Game Ball */
-  g2                  = new FCircle(1);
+  /*g2                  = new FCircle(1);
   g2.setPosition(3, 4);
   g2.setDensity(80);
   g2.setFill(random(255),random(255),random(255));
   g2.setName("Widget");
   world.add(g2);
-  
+  */
   /* Setup the Virtual Coupling Contact Rendering Technique */
   s                   = new HVirtualCoupling((0.75)); 
   s.h_avatar.setDensity(4); 
@@ -233,9 +298,9 @@ void setup(){
   
   /* World conditions setup */
   world.setGravity((0.0), gravityAcceleration); //1000 cm/(s^2)
-  world.setEdges((edgeTopLeftX), (edgeTopLeftY), (edgeBottomRightX), (edgeBottomRightY)); 
-  world.setEdgesRestitution(.4);
-  world.setEdgesFriction(0.5);
+  //world.setEdges((edgeTopLeftX), (edgeTopLeftY), (edgeBottomRightX), (edgeBottomRightY)); 
+  //world.setEdgesRestitution(.4);
+  //world.setEdgesFriction(0.5);
   
 
  
@@ -268,11 +333,11 @@ void draw(){
       textAlign(CENTER);
       text("Touch the green circle to reset", width/2, 90);
     
-      b1.setFill(0, 0, 0);
-      b2.setFill(0, 0, 0);
+      //b1.setFill(0, 0, 0);
+      /*b2.setFill(0, 0, 0);
       b3.setFill(0, 0, 0);
       b4.setFill(0, 0, 0);
-      b5.setFill(0, 0, 0);
+      b5.setFill(0, 0, 0);*/
     
     }
     else{
@@ -280,11 +345,11 @@ void draw(){
       textAlign(CENTER);
       text("Touch the green circle to start the maze", width/2, 60);
     
-      b1.setFill(255, 255, 255);
-      b2.setFill(255, 255, 255);
+      //b1.setFill(255, 255, 255);
+     /* b2.setFill(255, 255, 255);
       b3.setFill(255, 255, 255);
       b4.setFill(255, 255, 255);
-      b5.setFill(255, 255, 255);
+      b5.setFill(255, 255, 255);*/
     }
   
     world.draw();
@@ -323,20 +388,20 @@ class SimulationThread implements Runnable{
     
     if (s.h_avatar.isTouchingBody(c1)){
       gameStart = true;
-      g1.setPosition(2,8);
-      g2.setPosition(3,8);
+      //g1.setPosition(2,8);
+      //g2.setPosition(3,8);
       s.h_avatar.setSensor(false);
     }
   
-    if(g1.isTouchingBody(c2) || g2.isTouchingBody(c2)){
+    /*if(g1.isTouchingBody(c2) || g2.isTouchingBody(c2)){
       gameStart = false;
       s.h_avatar.setSensor(true);
-    }
+    }*/
   
   
   
-    /* Viscous layer codes */
-    if (s.h_avatar.isTouchingBody(l1)){
+     //Viscous layer codes 
+    /*if (s.h_avatar.isTouchingBody(l1)){
       s.h_avatar.setDamping(400);
     }
     else{
@@ -350,88 +415,10 @@ class SimulationThread implements Runnable{
     if(gameStart && g2.isTouchingBody(l1)){
       g2.setDamping(20);
     }
-  
-  
-    /* Bouyancy of fluid on avatar and gameball section */
-    if (g1.isTouchingBody(l1)){
-      float b_s;
-      float bm_d = g1.getY()-l1.getY()+l1.getHeight()/2; // vertical distance between middle of ball and top of water
-    
-      if (bm_d + g1.getWidth()/2 >= g1.getWidth()) { //if whole ball or more is submerged
-        b_s = g1.getWidth(); // amount of ball submerged is ball size
-      }
-      else { //if ball is partially submerged
-        b_s = bm_d + g1.getWidth()/2; // amount of ball submerged is vertical distance between middle of ball and top of water + half of ball size
-      }
-  
-      g1.addForce(0,l1.getDensity()*sq(b_s)*gravityAcceleration*-1); // 300 is gravity force
-   
-    }
-  
-    if (g2.isTouchingBody(l1)){
-      float b_s;
-      float bm_d = g2.getY()-l1.getY()+l1.getHeight()/2; // vertical distance between middle of ball and top of water
-    
-      if (bm_d + g2.getSize()/2 >= g2.getSize()) { //if whole ball or more is submerged
-        b_s = g2.getSize(); // amount of ball submerged is ball size
-      }
-      else { //if ball is partially submerged
-        b_s = bm_d + g2.getSize()/2; // amount of ball submerged is vertical distance between middle of ball and top of water + half of ball size
-      }
-  
-      g2.addForce(0,l1.getDensity()*sq(b_s)*gravityAcceleration*-1); // 300 is gravity force
-     
-    }
-    /* End Bouyancy of fluid on avatar and gameball section */
-  
-  
+    */
     world.step(1.0f/1000.0f);
   
     renderingForce = false;
   }
 }
 /* end simulation section **********************************************************************************************/
-
-
-
-/* helper functions section, place helper functions here ***************************************************************/
-
-/* Alternate bouyancy of fluid on avatar and gameball helper functions, comment out
- * "Bouyancy of fluid on avatar and gameball section" in simulation and uncomment 
- * the helper functions below to test
- */
- 
-/*
-void contactPersisted(FContact contact){
-  float size;
-  float b_s;
-  float bm_d;
-  
-  if(contact.contains("Water", "Widget")){
-    size = 2*sqrt(contact.getBody2().getMass()/contact.getBody2().getDensity()/3.1415);
-    bm_d = contact.getBody2().getY()-contact.getBody1().getY()+l1.getHeight()/2;
-    
-    if(bm_d + size/2 >= size){
-      b_s = size;
-    }
-    else{
-      b_s = bm_d + size/2;
-    }
-    
-    contact.getBody2().addForce(0, contact.getBody1().getDensity()*sq(b_s)*300*-1);
-    contact.getBody2().setDamping(20);
-  }
-  
-}
-
-
-void contactEnded(FContact contact){
-  if(contact.contains("Water", "Widget")){
-    contact.getBody2().setDamping(0);
-  }
-}
-*/
-
-/* End Alternate Bouyancy of fluid on avatar and gameball helper functions */
-
-/* end helper functions section ****************************************************************************************/
