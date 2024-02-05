@@ -26,6 +26,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import java.io.FileReader;
+import java.util.ArrayList;
 
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -59,6 +61,8 @@ public class sketch_6_Maze_Physics extends PApplet {
 
 
 /* end library imports *************************************************************************************************/  
+
+
 
 
 
@@ -126,7 +130,7 @@ FBox              b3;
 FBox              b4;
 FBox              b5;
 FBox              l1;
-FBox[][] maze;
+ArrayList<FBox> maze;
 
 /* define start and stop button */
 FCircle           c1;
@@ -146,16 +150,42 @@ int mazeImageWidth;
 int mazeImageHeight;
 /* end elements definition *********************************************************************************************/  
 
-public void read_image(){
+public void read_maze(){
   try {
             // Specify the path to your black and white image
-            String imagePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Lab01\\sketch_6_Maze_Physics\\img\\maze1.png";
+            //String filePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Lab01\\sketch_6_Maze_Physics\\img\\maze1.png";
+            String filePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Lab01\\sketch_6_Maze_Physics\\maze\\hello_maze.maze";
             
+            //maze = new FBox[230][230];
+            maze = new ArrayList<FBox>();
+
             // Read the image
-            BufferedImage image = ImageIO.read(new File(imagePath));
+            BufferedReader reader = new BufferedReader(new FileReader(filePath));
             
+            String line = reader.readLine();
+            int row = 0;
+            while (line != null) {
+              System.out.println(line);
+              // read next line
+              
+              for(int col = 0; col < line.length(); col++){
+                if(line.charAt(col) == '1'){
+                  FBox box = new FBox(1, 1);                  
+                  box.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
+                  box.setFill(0);
+                  box.setNoStroke();
+                  box.setStaticBody(true);
+                  maze.add(box);
+                  world.add(box);
+                }
+              }
+              row++;
+              line = reader.readLine();
+            }
+
+            reader.close();
             // Get the width and height of the image
-            mazeImageWidth = image.getWidth();
+            /*mazeImageWidth = image.getWidth();
             mazeImageHeight = image.getHeight();
             
             // Create a 2D array to store the pixel values
@@ -180,7 +210,7 @@ public void read_image(){
             // Now, 'pixelArray' contains 0s for white pixels and 1s for black pixels
             
             // You can use the 'pixelArray' for further processing or analysis
-            
+            */
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -189,7 +219,7 @@ public void read_image(){
 /* setup section *******************************************************************************************************/
 public void setup(){
   /* put setup code here, run once: */
-  read_image();
+  //read_image();
   System.out.println(mazeImageWidth);
   System.out.println(mazeImageHeight);
   /* screen size definition */
@@ -232,9 +262,9 @@ public void setup(){
   hAPI_Fisica.setScale(pixelsPerCentimeter); 
   world               = new FWorld();
   
-  
+  read_maze();
   // Set maze barriers 
-  maze = new FBox[pixelArray.length][pixelArray[0].length];
+  /*maze = new FBox[pixelArray.length][pixelArray[0].length];
   for (int x = 0; x < pixelArray.length; x++) {
     for (int y = 0; y < pixelArray[0].length; y++) {
         
@@ -249,7 +279,7 @@ public void setup(){
         }
     }
   }
-
+*/
 
   /*b1                  = new FBox(0.1, 5.0);
   b1.setPosition(edgeTopLeftX+worldWidth/4.0-2, edgeTopLeftY+worldHeight/2+1.5); 
