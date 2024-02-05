@@ -88,7 +88,8 @@ FBox              b3;
 FBox              b4;
 FBox              b5;
 FBox              l1;
-ArrayList<FBox> maze;
+ArrayList<FBody> maze;
+ArrayList<FBody> enemies;
 
 /* define start and stop button */
 FCircle           c1;
@@ -116,7 +117,8 @@ void read_maze(){
             String filePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Lab01\\sketch_6_Maze_Physics\\maze\\hello_maze.maze";
             
             //maze = new FBox[230][230];
-            maze = new ArrayList<FBox>();
+            maze = new ArrayList<FBody>();
+            enemies = new ArrayList<FBody>();
 
             // Read the image
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
@@ -137,39 +139,22 @@ void read_maze(){
                   maze.add(box);
                   world.add(box);
                 }
+                else if(line.charAt(col) == 'h' || line.charAt(col) == 'v' || line.charAt(col) == 'H' || line.charAt(col) == 'V'){
+                  FCircle enemy = new FCircle(1);
+                  enemy.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
+                  enemy.setName(String. valueOf(line.charAt(col)));
+                  enemy.setDensity(80);
+                  enemy.setFill(random(255),random(255),random(255));
+                  enemy.setStaticBody(true);
+                  enemies.add(enemy);
+                  world.add(enemy);
+                }
               }
               row++;
               line = reader.readLine();
             }
 
             reader.close();
-            // Get the width and height of the image
-            /*mazeImageWidth = image.getWidth();
-            mazeImageHeight = image.getHeight();
-            
-            // Create a 2D array to store the pixel values
-            pixelArray = new int[mazeImageWidth][mazeImageHeight];
-            
-            // Loop through each pixel and populate the 2D array
-            for (int x = 0; x < mazeImageWidth; x++) {
-                for (int y = 0; y < mazeImageHeight; y++) {
-                    // Get the RGB value of the pixel
-                    int rgb = image.getRGB(x, y);
-                    
-                    // Extract the red component (assuming it's a grayscale image)
-                    int red = (rgb >> 16) & 0xFF;
-                    
-                    // Convert to binary (black = 1, white = 0)
-                    pixelArray[x][y] = (red == 0) ? 1 : 0;
-                    System.out.print(pixelArray[x][y]);
-                }
-                System.out.println("");
-            }
-            
-            // Now, 'pixelArray' contains 0s for white pixels and 1s for black pixels
-            
-            // You can use the 'pixelArray' for further processing or analysis
-            */
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -321,6 +306,7 @@ void setup(){
   g2.setDensity(80);
   g2.setFill(random(255),random(255),random(255));
   g2.setName("Widget");
+  g2.setStaticBody(true);
   world.add(g2);
   
   /* Setup the Virtual Coupling Contact Rendering Technique */
@@ -393,6 +379,33 @@ void draw(){
 }
 /* end draw section ****************************************************************************************************/
 
+int direction = 1;
+int animation_steps = 0;
+int MAX_ENEMY_STEPS = 5;
+void animate(){
+  //g2.adjustPosition(0.5, 0);
+  for (FBody enemy : enemies){
+    if(enemy.getName().equals("h")){
+      enemy.adjustPosition(direction * 0.5, 0);
+    }
+    else if(enemy.getName().equals("H")) { 
+      enemy.adjustPosition(-direction * 0.5, 0);
+    }
+    else if(enemy.getName().equals("v")) { 
+      enemy.adjustPosition(0, direction * 0.5);
+    }
+    else if(enemy.getName().equals("V")) { 
+      enemy.adjustPosition(0, -direction * 0.5);
+    }
+  }
+  if(animation_steps >= MAX_ENEMY_STEPS){
+    animation_steps = 0;
+    direction *= -1;
+  }
+  animation_steps++;
+}
+
+
 int previousFrame = 0;
 int currentFrame = 0;
 
@@ -437,8 +450,8 @@ class SimulationThread implements Runnable{
   
     currentFrame++;
     if(currentFrame - previousFrame > 1000){
-      previousFrame = currentFrame;
-      g2.adjustPosition(0.1, 0);
+      previousFrame = currentFrame;      
+      animate();
     }
     
   
