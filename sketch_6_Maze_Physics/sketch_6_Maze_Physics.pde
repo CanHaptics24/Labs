@@ -107,6 +107,7 @@ PFont             f;
 int mazeImageWidth;
 int mazeImageHeight;
 Timer timer = null;
+String GAME_STATUS_MESSAGE = "";
 /* end elements definition *********************************************************************************************/  
 
 void read_maze(){
@@ -133,6 +134,7 @@ void read_maze(){
                   box.setFill(0);
                   box.setNoStroke();
                   box.setStaticBody(true);
+                  box.setDrawable(false);
                   maze.add(box);
                   world.add(box);
                 }
@@ -143,12 +145,12 @@ void read_maze(){
                   enemy.setDensity(80);
                   enemy.setFill(random(255),random(255),random(255));
                   enemy.setStaticBody(true);
+                  enemy.setDrawable(false);
                   enemies.add(enemy);
                   world.add(enemy);
                 }
                 else if (line.charAt(col) == 's'){
-                  c1 = new FCircle(2.0); // diameter is 2
-                  //c1.setPosition(edgeTopLeftX+2.5, edgeTopLeftY+worldHeight/2.0-3);
+                  c1 = new FCircle(2.0);
                   c1.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
                   c1.setFill(0, 255, 0);
                   c1.setStaticBody(true);
@@ -157,7 +159,6 @@ void read_maze(){
                 }
                 else if(line.charAt(col) == 'f'){
                   c2 = new FCircle(2.0);
-                  //c2.setPosition(worldWidth-2.5, edgeTopLeftY+worldHeight/2.0);
                   c2.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
                   c2.setFill(200,0,0);
                   c2.setStaticBody(true);
@@ -169,7 +170,7 @@ void read_maze(){
               row++;
               line = reader.readLine();
             }
-
+            
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -178,20 +179,14 @@ void read_maze(){
 
 /* setup section *******************************************************************************************************/
 void setup(){
-  /* put setup code here, run once: */
-  //read_image();
-  System.out.println(mazeImageWidth);
-  System.out.println(mazeImageHeight);
+  /* put setup code here, run once */
   /* screen size definition */
   size(1000, 800);
-  //size((int)(mazeImageWidth) * 10, (int)(mazeImageHeight) * 10);
   
   /* set font type and size */
-  f                   = createFont("Arial", 16, true);
+  f = createFont("Arial", 16, true);
 
-  
-  /* device setup */
-  
+  /* device setup */  
   /**  
    * The board declaration needs to be changed depending on which USB serial port the Haply board is connected.
    * In the base example, a connection is setup to the first detected serial device, this parameter can be changed
@@ -220,7 +215,7 @@ void setup(){
   /* 2D physics scaling and world creation */
   hAPI_Fisica.init(this); 
   hAPI_Fisica.setScale(pixelsPerCentimeter); 
-  world               = new FWorld();
+  world = new FWorld();
   
   read_maze();
 
@@ -332,30 +327,24 @@ void draw(){
     textFont(f, 22);
  
     if(gameStart){
-      fill(0, 0, 0);
-      textAlign(CENTER);
-      text("Push the ball or square to the red circle", width/2, 60);
-      textAlign(CENTER);
-      text("Touch the green circle to reset", width/2, 90);
-    
-      //b1.setFill(0, 0, 0);
-      /*b2.setFill(0, 0, 0);
-      b3.setFill(0, 0, 0);
-      b4.setFill(0, 0, 0);
-      b5.setFill(0, 0, 0);*/
-      
-    
+      for (FBody enemy : enemies){        
+        enemy.setDrawable(true);
+      }
+      for (FBody mazeBlock : maze){        
+        mazeBlock.setDrawable(true);
+      }
     }
     else{
       fill(128, 128, 128);
       textAlign(CENTER);
-      text("Touch the green circle to start the maze", width/2, 60);
-    
-      //b1.setFill(255, 255, 255);
-     /* b2.setFill(255, 255, 255);
-      b3.setFill(255, 255, 255);
-      b4.setFill(255, 255, 255);
-      b5.setFill(255, 255, 255);*/
+      text(GAME_STATUS_MESSAGE + "\nTouch the green circle to start the maze", width/2, 60);
+      
+      for (FBody enemy : enemies){
+        enemy.setDrawable(false);
+      }
+      for (FBody mazeBlock : maze){        
+        mazeBlock.setDrawable(false);
+      }
     }
   
     world.draw();
@@ -387,6 +376,12 @@ void animate(){
     direction *= -1;
   }
   animation_steps++;
+}
+
+void game_over(boolean won){
+  gameStart = false;
+  s.h_avatar.setSensor(true);
+  GAME_STATUS_MESSAGE = won? "YOU WON!" : "YOU LOST!";
 }
 
 
@@ -422,15 +417,22 @@ class SimulationThread implements Runnable{
     
     if (s.h_avatar.isTouchingBody(c1)){
       gameStart = true;
-      //g1.setPosition(2,8);
-      //g2.setPosition(3,8);
       s.h_avatar.setSensor(false);
+    }
+
+    if (s.h_avatar.isTouchingBody(c2)){
+      game_over(true);
     }
   
     /*if(g1.isTouchingBody(c2) || g2.isTouchingBody(c2)){
       gameStart = false;
       s.h_avatar.setSensor(true);
     }*/
+    for (FBody enemy : enemies){
+      if(s.h_avatar.isTouchingBody(enemy)){
+        game_over(false);
+      }
+    }
   
     currentFrame++;
     if(currentFrame - previousFrame > 1000){
