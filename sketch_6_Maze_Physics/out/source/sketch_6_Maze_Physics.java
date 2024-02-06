@@ -25,7 +25,6 @@ import static java.util.concurrent.TimeUnit.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import javax.imageio.ImageIO;
 import java.io.FileReader;
 import java.util.ArrayList;
 
@@ -57,7 +56,6 @@ public class sketch_6_Maze_Physics extends PApplet {
 
 
 /* library imports *****************************************************************************************************/ 
-
 
 
 
@@ -120,32 +118,24 @@ float             gravityAcceleration                 = 980; //cm/s2
 HVirtualCoupling  s;
 
 /* define maze blocks */
-FBox              b1;
-FBox              b2;
-FBox              b3;
-FBox              b4;
-FBox              b5;
-FBox              l1;
 ArrayList<FBody> maze;
 ArrayList<FBody> enemies;
 ArrayList<FBody> interactables;
 
 /* define start and stop button */
-FCircle           c1;
-FCircle           c2;
-
-/* define game ball */
-FCircle           g2;
-FBox              g1;
+FCircle           startButton;
+FCircle           finishButton;
 
 /* define game start */
 boolean           gameStart                           = false;
 
 /* text font */
 PFont             f;
-int mazeImageWidth;
-int mazeImageHeight;
+
 String GAME_STATUS_MESSAGE = "";
+int previousFrame = 0;
+int currentFrame = 0;
+
 /* end elements definition *********************************************************************************************/  
 
 public void read_maze(){
@@ -153,12 +143,11 @@ public void read_maze(){
             // Path to maze definition
             String filePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Lab01\\sketch_6_Maze_Physics\\maze\\hello_maze.maze";
             
-            //maze = new FBox[230][230];
             maze = new ArrayList<FBody>();
             enemies = new ArrayList<FBody>();
             interactables = new ArrayList<FBody>();
 
-            // Read the image
+            // Read the file
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             
             String line = reader.readLine();
@@ -189,21 +178,21 @@ public void read_maze(){
                   world.add(enemy);
                 }
                 else if (line.charAt(col) == 's'){
-                  c1 = new FCircle(2.0f);
-                  c1.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
-                  c1.setFill(0, 255, 0);
-                  c1.setStaticBody(true);
-                  c1.setName("StartButton");
-                  world.add(c1);
+                  startButton = new FCircle(2.0f);
+                  startButton.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
+                  startButton.setFill(0, 255, 0);
+                  startButton.setStaticBody(true);
+                  startButton.setName("StartButton");
+                  world.add(startButton);
                 }
                 else if(line.charAt(col) == 'f'){
-                  c2 = new FCircle(2.0f);
-                  c2.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
-                  c2.setFill(200,0,0);
-                  c2.setStaticBody(true);
-                  c2.setSensor(true);
-                  c1.setName("FinishButton");
-                  world.add(c2);
+                  finishButton = new FCircle(2.0f);
+                  finishButton.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
+                  finishButton.setFill(200,0,0);
+                  finishButton.setStaticBody(true);
+                  finishButton.setSensor(true);
+                  finishButton.setName("FinishButton");
+                  world.add(finishButton);
                 }
                 else if(line.charAt(col) == 't'){
                   FBox tactilePuddle  = new FBox(1,1);
@@ -219,21 +208,17 @@ public void read_maze(){
                   world.add(tactilePuddle);
                 }
                 else if(line.charAt(col) == 'i'){
-                  FBox impulseBox = new FBox(1, 1);
-                  impulseBox.setPosition(edgeTopLeftX+col, edgeTopLeftY+row);
-                  impulseBox.setDrawable(false);
-                  impulseBox.setFill(random(255),random(255),random(255));
-                  //impulseBox.setDensity(400);                  
-                  //impulseBox.setDensity(-400);                  
-                  impulseBox.setSensor(true);
-                  impulseBox.setNoStroke();
-                  impulseBox.setStatic(true);
-                  impulseBox.setName("ImpulseBox");
-                  interactables.add(impulseBox);
-                  world.add(impulseBox);
+                  FBox stuckBox = new FBox(1, 1);
+                  stuckBox.setPosition(edgeTopLeftX+col, edgeTopLeftY+row);
+                  stuckBox.setDrawable(false);
+                  stuckBox.setFill(random(255),random(255),random(255));
+                  stuckBox.setSensor(true);
+                  stuckBox.setNoStroke();
+                  stuckBox.setStatic(true);
+                  stuckBox.setName("StuckBox");
+                  interactables.add(stuckBox);
+                  world.add(stuckBox);
                 }
-
-                
               }
               row++;
               line = reader.readLine();
@@ -274,11 +259,9 @@ public void setup(){
   widgetOne.add_actuator(2, CCW, 1);
 
   widgetOne.add_encoder(1, CCW, 168, 4880, 2);
-  widgetOne.add_encoder(2, CCW, 12, 4880, 1);
+  widgetOne.add_encoder(2, CCW, 12, 4880, 1);  
   
-  
-  widgetOne.device_set_parameters();
-  
+  widgetOne.device_set_parameters();  
   
   /* 2D physics scaling and world creation */
   hAPI_Fisica.init(this); 
@@ -286,75 +269,6 @@ public void setup(){
   world = new FWorld();
   
   read_maze();
-
-  /*b1                  = new FBox(0.1, 5.0);
-  b1.setPosition(edgeTopLeftX+worldWidth/4.0-2, edgeTopLeftY+worldHeight/2+1.5); 
-  b1.setFill(0);
-  b1.setNoStroke();
-  b1.setStaticBody(true);
-  world.add(b1);
-  
-  b2                  = new FBox(1.0, 5.0);
-  b2.setPosition(edgeTopLeftX+worldWidth/4.0, edgeTopLeftY+worldHeight/2-1.5); 
-  b2.setFill(0);
-  b2.setNoStroke();
-  b2.setStaticBody(true);
-  world.add(b2);
-   
-  b3                  = new FBox(0.5, 3.0);
-  b3.setPosition(edgeTopLeftX+worldWidth/4.0+8, edgeTopLeftY+worldHeight/2+1.5); 
-  b3.setFill(0);
-  b3.setNoStroke();
-  b3.setStaticBody(true);
-  world.add(b3);
-  
-  b4                  = new FBox(1.0, 5.0);
-  b4.setPosition(edgeTopLeftX+worldWidth/4.0+12, edgeTopLeftY+worldHeight/2-1.5); 
-  b4.setFill(0);
-  b4.setNoStroke();
-  b4.setStaticBody(true);
-  world.add(b4);
-   
-  b5                  = new FBox(3.0, 2.0);
-  b5.setPosition(edgeTopLeftX+worldWidth/2.0, edgeTopLeftY+worldHeight/2.0+2);
-  b5.setFill(0);
-  b5.setNoStroke();
-  b5.setStaticBody(true);
-  world.add(b5);*/
-  
-  /* Set viscous layer */
- /* l1                  = new FBox(3,1);
-  l1.setPosition(24.5/2,8.5);
-  l1.setFill(150,150,255,80);
-  l1.setDensity(100);
-  l1.setSensor(true);
-  l1.setNoStroke();
-  l1.setStatic(true);
-  l1.setName("Water");
-  world.add(l1);*/
-  
-  /* Start Button */
-  
-  
-  /* Finish Button */
-  
-  
-  /* Game Box */
- /* g1                  = new FBox(1, 1);
-  g1.setPosition(2, 4);
-  //g1.setDensity(80);
-  g1.setFill(random(255),random(255),random(255));
-  g1.setName("Widget");
-  world.add(g1);*/
-  
-  /* Game Ball */
-  /*g2                  = new FCircle(1);
-  g2.setPosition(3, 4);
-  g2.setDensity(80);
-  g2.setFill(random(255),random(255),random(255));
-  g2.setName("Widget");
-  g2.setStaticBody(true);
-  world.add(g2);*/
   
   /* Setup the Virtual Coupling Contact Rendering Technique */
   s = new HVirtualCoupling((0.75f)); 
@@ -365,19 +279,11 @@ public void setup(){
   s.init(world, edgeTopLeftX+worldWidth/2, edgeTopLeftY+2); 
   
   /* World conditions setup */
-  world.setGravity((0.0f), gravityAcceleration); //1000 cm/(s^2)
-  //world.setEdges((edgeTopLeftX), (edgeTopLeftY), (edgeBottomRightX), (edgeBottomRightY)); 
-  //world.setEdgesRestitution(.4);
-  //world.setEdgesFriction(0.5);
-  
-
- 
+  world.setGravity((0.0f), gravityAcceleration); //1000 cm/(s^2) 
   world.draw();
-  
-  
+    
   /* setup framerate speed */
-  frameRate(baseFrameRate);
-  
+  frameRate(baseFrameRate);  
   
   /* setup simulation thread to run at 1kHz */
   SimulationThread st = new SimulationThread();
@@ -457,17 +363,11 @@ public void game_over(boolean won){
   GAME_STATUS_MESSAGE = won? "YOU WON!" : "YOU LOST!";
 }
 
-
-int previousFrame = 0;
-int currentFrame = 0;
-boolean inverse = false;
-float interactableX = 0;
-float interactableY = 0;
 /* simulation section **************************************************************************************************/
 class SimulationThread implements Runnable{
   
   public void run(){
-    /* put haptic simulation code here, runs repeatedly at 1kHz as defined in setup */
+    /* Put haptic simulation code here, runs repeatedly at 1kHz as defined in setup */
     
     renderingForce = true;
     
@@ -482,42 +382,28 @@ class SimulationThread implements Runnable{
     
     s.setToolPosition(edgeTopLeftX+worldWidth/2-(posEE).x, edgeTopLeftY+(posEE).y-7); 
     s.updateCouplingForce();
- 
- 
-    if(inverse){
-      fEE.set((interactableX-posEE.x) * 450, (interactableY - posEE.y) * 450);
-    }
-    else{
-      fEE.set(-s.getVirtualCouplingForceX(), s.getVirtualCouplingForceY());
-    }
     
+    fEE.set(-s.getVirtualCouplingForceX(), s.getVirtualCouplingForceY());
+        
     fEE.div(100000); //dynes to newtons
     
     torques.set(widgetOne.set_device_torques(fEE.array()));
     widgetOne.device_write_torques();
     
-    if (s.h_avatar.isTouchingBody(c1)){
+    if (s.h_avatar.isTouchingBody(startButton)){
       gameStart = true;
       s.h_avatar.setSensor(false);
     }
 
     if(gameStart){
-      if (s.h_avatar.isTouchingBody(c2)){
+      if (s.h_avatar.isTouchingBody(finishButton)){
         game_over(true);
       }
 
-      inverse = false; 
       s.h_avatar.setDamping(0);
       for (FBody interactable : interactables){
-        if(interactable.getName().equals("ImpulseBox") && s.h_avatar.isTouchingBody(interactable)){
-          System.out.println("Touched ImpulseBox");
+        if(interactable.getName().equals("StuckBox") && s.h_avatar.isTouchingBody(interactable)){
           s.h_avatar.setDamping(800);
-          /*interactable.addForce(10, 10, 10, 10);
-          posEE.set(posEE.x+50, posEE.y);  
-          s.setToolPosition(s.getToolPositionX(), s.getToolPositionY() + 2); 
-          inverse = true;
-          interactableX = interactable.getX();
-          interactableY = interactable.getY();*/
         }        
       }
     
@@ -527,8 +413,6 @@ class SimulationThread implements Runnable{
         }
       }
     }
-
-    
   
     currentFrame++;
     if(currentFrame - previousFrame > 1000){
@@ -536,23 +420,6 @@ class SimulationThread implements Runnable{
       animate();
     }
     
-  
-     //Viscous layer codes 
-    /*if (s.h_avatar.isTouchingBody(l1)){
-      s.h_avatar.setDamping(400);
-    }
-    else{
-      s.h_avatar.setDamping(10); 
-    }
-  
-    if(gameStart && g1.isTouchingBody(l1)){
-      g1.setDamping(20);
-    }
-  
-    if(gameStart && g2.isTouchingBody(l1)){
-      g2.setDamping(20);
-    }
-    */
     world.step(1.0f/1000.0f);
   
     renderingForce = false;
