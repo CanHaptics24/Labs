@@ -20,16 +20,14 @@ import org.jbox2d.util.nonconvex.*;
 import org.jbox2d.util.sph.*;
 
 import processing.serial.*;
-import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
+import static java.util.concurrent.TimeUnit.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.io.FileReader;
 import java.util.ArrayList;
-import javax.swing.Timer;
-import java.awt.event.*;
 
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -45,7 +43,7 @@ public class sketch_6_Maze_Physics extends PApplet {
 /**
  **********************************************************************************************************************
  * @file       Maze.pde
- * @author     Elie Hymowitz, Steve Ding, Colin Gallacher
+ * @author     Naomi Catwell, Elie Hymowitz, Steve Ding, Colin Gallacher
  * @version    V4.0.0
  * @date       08-January-2021
  * @brief      Maze game example using 2-D physics engine
@@ -62,21 +60,17 @@ public class sketch_6_Maze_Physics extends PApplet {
 
 
 
+
+
+
+
+
+
 /* end library imports *************************************************************************************************/  
 
-
-
-
-
-
-
-
-
 /* scheduler definition ************************************************************************************************/ 
-private final ScheduledExecutorService scheduler      = Executors.newScheduledThreadPool(1);
+private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 /* end scheduler definition ********************************************************************************************/ 
-
-
 
 /* device block definitions ********************************************************************************************/
 Board             haplyBoard;
@@ -134,6 +128,7 @@ FBox              b5;
 FBox              l1;
 ArrayList<FBody> maze;
 ArrayList<FBody> enemies;
+ArrayList<FBody> interactables;
 
 /* define start and stop button */
 FCircle           c1;
@@ -150,7 +145,6 @@ boolean           gameStart                           = false;
 PFont             f;
 int mazeImageWidth;
 int mazeImageHeight;
-Timer timer = null;
 String GAME_STATUS_MESSAGE = "";
 /* end elements definition *********************************************************************************************/  
 
@@ -162,6 +156,7 @@ public void read_maze(){
             //maze = new FBox[230][230];
             maze = new ArrayList<FBody>();
             enemies = new ArrayList<FBody>();
+            interactables = new ArrayList<FBody>();
 
             // Read the image
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
@@ -210,6 +205,35 @@ public void read_maze(){
                   c1.setName("FinishButton");
                   world.add(c2);
                 }
+                else if(line.charAt(col) == 't'){
+                  FBox tactilePuddle  = new FBox(1,1);
+                  tactilePuddle.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
+                  tactilePuddle.setDrawable(false);
+                  tactilePuddle.setFill(150,150,255,80);
+                  tactilePuddle.setDensity(100);
+                  tactilePuddle.setSensor(true);
+                  tactilePuddle.setNoStroke();
+                  tactilePuddle.setStatic(true);
+                  tactilePuddle.setName("TactilePuddle");
+                  interactables.add(tactilePuddle);
+                  world.add(tactilePuddle);
+                }
+                else if(line.charAt(col) == 'i'){
+                  FBox impulseBox = new FBox(1, 1);
+                  impulseBox.setPosition(edgeTopLeftX+col, edgeTopLeftY+row);
+                  impulseBox.setDrawable(false);
+                  impulseBox.setFill(random(255),random(255),random(255));
+                  //impulseBox.setDensity(400);                  
+                  //impulseBox.setDensity(-400);                  
+                  impulseBox.setSensor(true);
+                  impulseBox.setNoStroke();
+                  impulseBox.setStatic(true);
+                  impulseBox.setName("ImpulseBox");
+                  interactables.add(impulseBox);
+                  world.add(impulseBox);
+                }
+
+                
               }
               row++;
               line = reader.readLine();
@@ -299,7 +323,7 @@ public void setup(){
   world.add(b5);*/
   
   /* Set viscous layer */
- /* l1                  = new FBox(27,4);
+ /* l1                  = new FBox(3,1);
   l1.setPosition(24.5/2,8.5);
   l1.setFill(150,150,255,80);
   l1.setDensity(100);
@@ -333,7 +357,7 @@ public void setup(){
   world.add(g2);*/
   
   /* Setup the Virtual Coupling Contact Rendering Technique */
-  s                   = new HVirtualCoupling((0.75f)); 
+  s = new HVirtualCoupling((0.75f)); 
   s.h_avatar.setDensity(4); 
   s.h_avatar.setFill(255,0,0); 
   s.h_avatar.setSensor(true);
@@ -377,6 +401,9 @@ public void draw(){
       for (FBody mazeBlock : maze){        
         mazeBlock.setDrawable(true);
       }
+      for (FBody interactable : interactables){        
+        interactable.setDrawable(true);
+      }
     }
     else{
       fill(128, 128, 128);
@@ -389,6 +416,9 @@ public void draw(){
       for (FBody mazeBlock : maze){        
         mazeBlock.setDrawable(false);
       }
+      for (FBody interactable : interactables){        
+        interactable.setDrawable(false);
+      }
     }
   
     world.draw();
@@ -400,7 +430,6 @@ int direction = 1;
 int animation_steps = 0;
 int MAX_ENEMY_STEPS = 6;
 public void animate(){
-  //g2.adjustPosition(0.5, 0);
   for (FBody enemy : enemies){
     if(enemy.getName().equals("h")){
       enemy.adjustPosition(direction * 0.5f, 0);
@@ -431,7 +460,9 @@ public void game_over(boolean won){
 
 int previousFrame = 0;
 int currentFrame = 0;
-
+boolean inverse = false;
+float interactableX = 0;
+float interactableY = 0;
 /* simulation section **************************************************************************************************/
 class SimulationThread implements Runnable{
   
@@ -453,7 +484,13 @@ class SimulationThread implements Runnable{
     s.updateCouplingForce();
  
  
-    fEE.set(-s.getVirtualCouplingForceX(), s.getVirtualCouplingForceY());
+    if(inverse){
+      fEE.set((interactableX-posEE.x) * 450, (interactableY - posEE.y) * 450);
+    }
+    else{
+      fEE.set(-s.getVirtualCouplingForceX(), s.getVirtualCouplingForceY());
+    }
+    
     fEE.div(100000); //dynes to newtons
     
     torques.set(widgetOne.set_device_torques(fEE.array()));
@@ -464,19 +501,34 @@ class SimulationThread implements Runnable{
       s.h_avatar.setSensor(false);
     }
 
-    if (s.h_avatar.isTouchingBody(c2)){
-      game_over(true);
-    }
-  
-    /*if(g1.isTouchingBody(c2) || g2.isTouchingBody(c2)){
-      gameStart = false;
-      s.h_avatar.setSensor(true);
-    }*/
-    for (FBody enemy : enemies){
-      if(s.h_avatar.isTouchingBody(enemy)){
-        game_over(false);
+    if(gameStart){
+      if (s.h_avatar.isTouchingBody(c2)){
+        game_over(true);
+      }
+
+      inverse = false; 
+      s.h_avatar.setDamping(0);
+      for (FBody interactable : interactables){
+        if(interactable.getName().equals("ImpulseBox") && s.h_avatar.isTouchingBody(interactable)){
+          System.out.println("Touched ImpulseBox");
+          s.h_avatar.setDamping(800);
+          /*interactable.addForce(10, 10, 10, 10);
+          posEE.set(posEE.x+50, posEE.y);  
+          s.setToolPosition(s.getToolPositionX(), s.getToolPositionY() + 2); 
+          inverse = true;
+          interactableX = interactable.getX();
+          interactableY = interactable.getY();*/
+        }        
+      }
+    
+      for (FBody enemy : enemies){
+        if(s.h_avatar.isTouchingBody(enemy)){
+          game_over(false);
+        }
       }
     }
+
+    
   
     currentFrame++;
     if(currentFrame - previousFrame > 1000){
