@@ -152,6 +152,7 @@ public void read_maze(){
             
             String line = reader.readLine();
             int row = 0;
+            System.out.println("MAZE: ");
             while (line != null) {
               System.out.println(line);
               

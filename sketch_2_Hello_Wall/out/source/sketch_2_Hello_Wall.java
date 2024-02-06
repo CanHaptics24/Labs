@@ -77,13 +77,13 @@ float             L                                   = 0.09f;
 
 
 /* end effector radius in meters */
-float             rEE                                 = 0.006f;
+float             rEE                                 = 0.003f;
 
 /* virtual wall parameter  */
 float             kWall                               = 450;
 PVector           fWall                               = new PVector(0, 0);
 PVector           penWall                             = new PVector(0, 0);
-PVector           posWall                             = new PVector(0.01f, 0.1f);
+PVector           posWall                             = new PVector(0.01f, 0.08f);
 
 
 
@@ -105,10 +105,9 @@ final int         worldPixelHeight                    = 650;
 
 
 /* graphical elements */
-PShape /*pGraph, joint,*/ endEffector;
+PShape /*pGraph, joint,*/ endEffector, startButton;
 PShape wall;
 /* end elements definition *********************************************************************************************/ 
-
 
 
 /* setup section *******************************************************************************************************/
@@ -116,39 +115,20 @@ public void setup(){
   /* put setup code here, run once: */
   
   /* screen size definition */
-  /* size commented out by preprocessor */; //fixed size - keep small or else might be clipped by small screens
+  /* size commented out by preprocessor */;
   
   /* device setup */
-  
-  /**  
-   * The board declaration needs to be changed depending on which USB serial port the Haply board is connected.
-   * In the base example, a connection is setup to the first detected serial device, this parameter can be changed
-   * to explicitly state the serial port will look like the following for different OS:
-   *
-   *      windows:      haplyBoard = new Board(this, "COM10", 0);
-   *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
-   *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
-   */ 
   haplyBoard          = new Board(this, Serial.list()[0], 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
   
   widgetOne.set_mechanism(pantograph);
   
-  /*
-  widgetOne.add_actuator(1, CCW, 2);
-  widgetOne.add_actuator(2, CW, 1);
- 
-  widgetOne.add_encoder(1, CCW, 241, 10752, 2);
-  widgetOne.add_encoder(2, CW, -61, 10752, 1);
-  */
-  //////////// (might be necessary for the new haply: if the above does not work CCW -- >
   widgetOne.add_actuator(1, CCW, 2);
   widgetOne.add_actuator(2, CCW, 1);
 
   widgetOne.add_encoder(1, CCW, 168, 4880, 2);
   widgetOne.add_encoder(2, CCW, 12, 4880, 1);
-  ////////////
   
   widgetOne.device_set_parameters();
     
@@ -158,14 +138,15 @@ public void setup(){
   deviceOrigin.add(worldPixelWidth/2, 0);
   
   /* create pantagraph graphics */
-  create_pantagraph();
+  create_end_effector();
   
+  /* creat start button */
+  create_start_button();
+
   /* create wall graphics */
   wall = create_wall(posWall.x-0.2f, posWall.y+rEE, posWall.x+0.2f, posWall.y+rEE);
   wall.setStroke(color(0));
-  
-  
-  
+    
   /* setup framerate speed */
   frameRate(baseFrameRate);
   
@@ -209,15 +190,15 @@ class SimulationThread implements Runnable{
       
       /* haptic wall force calculation */
       fWall.set(0, 0);
+      float delta = posWall.y - (posEE.y + rEE);
+     // penWall.set(0, (posWall.y - (posEE.y + rEE)));
       
-      penWall.set(0, (posWall.y - (posEE.y + rEE)));
-      
-      if(penWall.y < 0){
-        fWall = fWall.add(penWall.mult(-kWall));  
+      if(delta < 0){
+        //fWall = fWall.add(penWall.mult(-kWall));  //kWall is stiffness
+        fWall.set(0, delta * kWall);
       }
       
-      fEE = (fWall.copy()).mult(-1);
-      fEE.set(graphics_to_device(fEE));
+      fEE.set(graphics_to_device(fWall.copy()));
       /* end haptic wall force calculation */
     }
     
@@ -233,9 +214,9 @@ class SimulationThread implements Runnable{
 
 
 /* helper functions section, place helper functions here ***************************************************************/
-public void create_pantagraph(){
-  float lAni = pixelsPerMeter * l;
-  float LAni = pixelsPerMeter * L;
+public void create_end_effector(){
+  //float lAni = pixelsPerMeter * l;
+  //float LAni = pixelsPerMeter * L;
   float rEEAni = pixelsPerMeter * rEE;
   
   /*pGraph = createShape();
@@ -253,12 +234,21 @@ public void create_pantagraph(){
   //joint = createShape(ELLIPSE, deviceOrigin.x, deviceOrigin.y, rEEAni, rEEAni);
   //joint.setStroke(color(0));
   
-  endEffector = createShape(ELLIPSE, deviceOrigin.x, deviceOrigin.y, 2*rEEAni, 2*rEEAni);
+  //endEffector = createShape(ELLIPSE, deviceOrigin.x, deviceOrigin.y, 2*rEEAni, 2*rEEAni);
+  strokeWeight(1);
+  endEffector = createShape(ELLIPSE, deviceOrigin.x, 0, 2*rEEAni, 2*rEEAni);
+  //endEffector = createShape(ELLIPSE, 0.01, -300, 2*rEEAni, 2*rEEAni);
   endEffector.setStroke(color(0));
-  strokeWeight(5);
+  //strokeWeight(5);
   
 }
 
+public void create_start_button(){
+  float button_radius = pixelsPerMeter * 0.01f;
+  strokeWeight(1);
+  startButton = createShape(ELLIPSE, 50, 50, 2*button_radius, 2*button_radius);
+  startButton.fill(color(255,0,0));
+} 
 
 public PShape create_wall(float x1, float y1, float x2, float y2){
   x1 = pixelsPerMeter * x1;
@@ -266,6 +256,7 @@ public PShape create_wall(float x1, float y1, float x2, float y2){
   x2 = pixelsPerMeter * x2;
   y2 = pixelsPerMeter * y2;
   
+  strokeWeight(5);
   return createShape(LINE, deviceOrigin.x + x1, deviceOrigin.y + y1, deviceOrigin.x + x2, deviceOrigin.y+y2);
 }
 
@@ -289,6 +280,7 @@ public void update_animation(float th1, float th2, float xE, float yE){
   //shape(pGraph);
   //shape(joint);
   shape(wall);
+  shape(startButton);
   
   
   translate(xE, yE);
