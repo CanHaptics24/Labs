@@ -232,7 +232,7 @@ void setup(){
   
   /* Setup the Virtual Coupling Contact Rendering Technique */
   s = new HVirtualCoupling((0.75)); 
-  s.h_avatar.setDensity(4); 
+  s.h_avatar.setDensity(0); 
   s.h_avatar.setFill(255,0,0); 
   s.h_avatar.setSensor(true);
 
