@@ -297,8 +297,7 @@ void draw(){
 }
 /* end draw section ****************************************************************************************************/
 
-void keyPressed(){
-  
+void keyPressed(){  
   System.out.println("KEY: " + key);
   switch(key){
     case '0' : WORD_STATE = WORD.NONE; break;
@@ -308,7 +307,6 @@ void keyPressed(){
   }
   System.out.println("WORD STATE : " + WORD_STATE);
 }
-ff
 
 int direction = 1;
 int animation_steps = 0;
