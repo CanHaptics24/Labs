@@ -41,19 +41,12 @@ public class Lab03 extends PApplet {
 
 /**
  **********************************************************************************************************************
- * @file       Maze.pde
- * @author     Elie Hymowitz, Steve Ding, Colin Gallacher
- * @version    V4.0.0
- * @date       08-January-2021
- * @brief      Maze game example using 2-D physics engine
- **********************************************************************************************************************
- * @attention
- *
- *
+ * @file       Lab03.pde
+ * @author     Naomi Catwell, 
+ * @date       16-February-2024
+ * @brief      Express three vocabulary words
  **********************************************************************************************************************
  */
-
-
 
 /* library imports *****************************************************************************************************/ 
 
@@ -67,12 +60,9 @@ public class Lab03 extends PApplet {
 /* end library imports *************************************************************************************************/  
 
 
-
 /* scheduler definition ************************************************************************************************/ 
 private final ScheduledExecutorService scheduler      = Executors.newScheduledThreadPool(1);
 /* end scheduler definition ********************************************************************************************/ 
-
-
 
 /* device block definitions ********************************************************************************************/
 Board             haplyBoard;
@@ -121,23 +111,22 @@ float             gravityAcceleration                 = 980; //cm/s2
 /* Initialization of virtual tool */
 HVirtualCoupling  s;
 
-/* define maze blocks */
-FBox              b1;
-FBox              b2;
-FBox              b3;
-FBox              b4;
-FBox              b5;
-FBox              l1;
-
 ArrayList<FBody> worldBodies;
 ArrayList<FBody> movingWalls;
 ArrayList<FBody> stickList;
 
-/* define game start */
-boolean           gameStart                           = false;
-
 /* text font */
 PFont             f;
+
+/* animation */
+int previousFrame = 0;
+int currentFrame = 0;
+float MAX_DISTANCE = 22;
+float distanceTraveled = 0;
+float distancePerStep = 0.1f;
+boolean enableAnimation = true;
+boolean resetAnimation = false;
+
 
 /* end elements definition *********************************************************************************************/  
 
@@ -166,7 +155,7 @@ public void setup(){
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
    */
   //haplyBoard          = new Board(this, Serial.list()[0], 0);
-  haplyBoard = new Board(this, "COM6", 0);
+  haplyBoard          = new Board(this, "COM6", 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
   
@@ -195,7 +184,7 @@ public void setup(){
   s                   = new HVirtualCoupling((0.75f)); 
   s.h_avatar.setDensity(4); 
   s.h_avatar.setFill(255,0,0); 
-  s.h_avatar.setSensor(true);
+  s.h_avatar.setSensor(false);
 
   s.init(world, edgeTopLeftX+worldWidth/2, edgeTopLeftY+2); 
   
@@ -211,13 +200,9 @@ public void setup(){
   scheduler.scheduleAtFixedRate(st, 1, 1, MILLISECONDS);
 }
 
-int layoutIndex = 2;
-//int previous = layoutIndex;
+int layoutIndex = 1;
 public void read_layout_config(){
-  try {    
-    // Path to maze definition
-    
-    
+  try {        
     worldBodies = new ArrayList<FBody>();
     movingWalls = new ArrayList<FBody>();
     stickList = new ArrayList<FBody>();
@@ -250,18 +235,17 @@ public void read_layout_config(){
             s1.setNoStroke();
             s1.setStaticBody(true);
             s1.setName("1");
-            s1.setDrawable(false);
             worldBodies.add(s1);
             world.add(s1);
           }
-          else if(line.charAt(col) == '2'){//line.charAt(col) == 'r' || line.charAt(col) == 'l'){
+          else if(line.charAt(col) == '2'){
             FBox s2 = new FBox(1, 1);                  
             s2.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
             s2.setFill(0);
             s2.setNoStroke();
             s2.setStaticBody(true);
             s2.setName("2");
-            //s2.setDrawable(false);
+            s2.setDrawable(false);
             movingWalls.add(s2);
             worldBodies.add(s2);
             world.add(s2);
@@ -297,8 +281,6 @@ public void read_layout_config(){
 public void keyPressed(){  
   System.out.println("LAYOUT: " + key);  
   switch(key){
-    case 's' : ToggleForce(true);  break;
-    case 'q' : ToggleForce(false);  break;
     case '1' : layoutIndex = 1; break;
     case '2' : layoutIndex = 2; resetAnimation = true; break;
     case '3' : layoutIndex = 3; break;
@@ -307,17 +289,7 @@ public void keyPressed(){
 /* End IO section */
 
 
-
-
-
 /* draw section ********************************************************************************************************/
-float MAX_DISTANCE = 22;
-float distanceTraveled = 0;
-float distancePerStep = 0.1f;
-boolean enableAnimation = true;
-boolean resetAnimation = false;
-
-
 public void animate(){
   if(enableAnimation){
     for (FBody body : movingWalls){
@@ -355,8 +327,6 @@ public void draw(){
 }
 /* end draw section ****************************************************************************************************/
 
-int previousFrame = 0;
-int currentFrame = 0;
 
 /* simulation section **************************************************************************************************/
 class SimulationThread implements Runnable{
@@ -406,8 +376,6 @@ class SimulationThread implements Runnable{
         enableAnimation = true;
       }
     }
-
-    
     
     world.step(1.0f/1000.0f);
   
@@ -415,12 +383,6 @@ class SimulationThread implements Runnable{
   }
 }
 /* end simulation section **********************************************************************************************/
-
-/* Helper functions */
-public void ToggleForce(boolean produceForce){
-  gameStart = produceForce;      
-  s.h_avatar.setSensor(!produceForce);
-}
 
 
   public void settings() { size(1000, 800); }

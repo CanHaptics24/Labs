@@ -1,7 +1,7 @@
 /**
  **********************************************************************************************************************
  * @file       Lab03.pde
- * @author     Naomi Catwell, 
+ * @author     Naomi Catwell
  * @date       16-February-2024
  * @brief      Express three vocabulary words
  **********************************************************************************************************************
@@ -143,7 +143,7 @@ void setup(){
   s                   = new HVirtualCoupling((0.75)); 
   s.h_avatar.setDensity(4); 
   s.h_avatar.setFill(255,0,0); 
-  s.h_avatar.setSensor(true);
+  s.h_avatar.setSensor(false);
 
   s.init(world, edgeTopLeftX+worldWidth/2, edgeTopLeftY+2); 
   
@@ -240,11 +240,10 @@ void read_layout_config(){
 void keyPressed(){  
   System.out.println("LAYOUT: " + key);  
   switch(key){
-    case 's' : ToggleForce(true);  break;
-    case 'q' : ToggleForce(false);  break;
     case '1' : layoutIndex = 1; break;
     case '2' : layoutIndex = 2; resetAnimation = true; break;
     case '3' : layoutIndex = 3; break;
+    default: System.out.println("Press 1, 2 or 3 for corresponding word.");  
   }
 }
 /* End IO section */
@@ -344,8 +343,3 @@ class SimulationThread implements Runnable{
   }
 }
 /* end simulation section **********************************************************************************************/
-
-/* Helper functions */
-void ToggleForce(boolean produceForce){
-  s.h_avatar.setSensor(!produceForce);
-}
