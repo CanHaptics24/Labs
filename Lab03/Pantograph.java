@@ -33,7 +33,7 @@ public class Pantograph extends Mechanisms{
 	
     this.l = 0.07f;
     this.L = 0.09f;
-    this.d = 0.0375f;	
+    this.d = 0.0f;	
   }
 	
 	
@@ -63,12 +63,11 @@ public class Pantograph extends Mechanisms{
     float c2 = (float)cos(th2);
     float s1 = (float)sin(th1);
     float s2 = (float)sin(th2);
-    float xA = l1*c1 - d/2;
+    float xA = l1*c1;
     float yA = l1*s1;
-
-    float xB = l2*c2 + d/2;
+    float xB = d+l2*c2;
+     
     float yB = l2*s2;
-    
     float hx = xB-xA; 
     float hy = yB-yA; 
     float hh = (float) pow(hx,2) + (float) pow(hy,2); 
@@ -87,8 +86,8 @@ public class Pantograph extends Mechanisms{
     float x_P = xA + h1x + lx; 
     float y_P = yA + h1y + ly; 
      
-    float phi1 = (float)acos((x_P-d/2-l1*c1)/L1);
-    float phi2 = (float)acos((x_P+d/2-l2*c2)/L2);
+    float phi1 = (float)acos((x_P-l1*c1)/L1);
+    float phi2 = (float)acos((x_P-d-l2*c2)/L2);
      
     float c11 = (float) cos(phi1); 
     float s11 =(float) sin(phi1); 

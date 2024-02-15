@@ -95,18 +95,12 @@ String GAME_STATUS_MESSAGE = "";
 int previousFrame = 0;
 int currentFrame = 0;
 
-
-enum WORD{
-  NONE, WORD1, WORD2, WORD3
-}
-WORD WORD_STATE = WORD.NONE;
-
 /* end elements definition *********************************************************************************************/  
 
 void read_maze(){
   try {
             // Path to maze definition
-            String filePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Labs\\Lab02\\config\\layout.config";
+            String filePath = "C:\\Users\\naomi\\Documents\\GIT\\ETS\\CanHaptics\\Labs\\Lab01\\maze\\hello_maze.maze";
             
             maze = new ArrayList<FBody>();
             enemies = new ArrayList<FBody>();
@@ -117,7 +111,7 @@ void read_maze(){
             
             String line = reader.readLine();
             int row = 0;
-            System.out.println("LAYOUT: ");
+            System.out.println("MAZE: ");
             while (line != null) {
               System.out.println(line);
               
@@ -128,6 +122,7 @@ void read_maze(){
                   box.setFill(0);
                   box.setNoStroke();
                   box.setStaticBody(true);
+                  box.setDrawable(false);
                   maze.add(box);
                   world.add(box);
                 }
@@ -147,6 +142,7 @@ void read_maze(){
                   startButton.setPosition(edgeTopLeftX+col, edgeTopLeftY+row); 
                   startButton.setFill(0, 255, 0);
                   startButton.setStaticBody(true);
+                  startButton.setSensor(true);
                   startButton.setName("StartButton");
                   world.add(startButton);
                 }
@@ -239,7 +235,7 @@ void setup(){
   s = new HVirtualCoupling((0.75)); 
   s.h_avatar.setDensity(0); 
   s.h_avatar.setFill(255,0,0); 
-  s.h_avatar.setSensor(false);
+  s.h_avatar.setSensor(true);
 
   s.init(world, edgeTopLeftX+worldWidth/2, edgeTopLeftY+2); 
   
@@ -265,7 +261,7 @@ void draw(){
     background(255);
     textFont(f, 22);
  
-    /*if(gameStart){
+    if(gameStart){
       for (FBody enemy : enemies){        
         enemy.setDrawable(true);
       }
@@ -276,12 +272,12 @@ void draw(){
         interactable.setDrawable(true);
       }
     }
-    
+    else{
       fill(128, 128, 128);
       textAlign(CENTER);
       text(GAME_STATUS_MESSAGE + "\nTouch the green circle to start the maze", width/2, 60);
       
-      /*for (FBody enemy : enemies){
+      for (FBody enemy : enemies){
         enemy.setDrawable(false);
       }
       for (FBody mazeBlock : maze){        
@@ -289,24 +285,13 @@ void draw(){
       }
       for (FBody interactable : interactables){        
         interactable.setDrawable(false);
-      }*/
-    
+      }
+    }
   
     world.draw();
   }
 }
 /* end draw section ****************************************************************************************************/
-
-void keyPressed(){  
-  System.out.println("KEY: " + key);
-  switch(key){
-    case '0' : WORD_STATE = WORD.NONE; break;
-    case '1' : WORD_STATE = WORD.WORD1; break;
-    case '2' : WORD_STATE = WORD.WORD2; break;
-    case '3' : WORD_STATE = WORD.WORD3; break;
-  }
-  System.out.println("WORD STATE : " + WORD_STATE);
-}
 
 int direction = 1;
 int animation_steps = 0;
