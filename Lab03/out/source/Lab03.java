@@ -42,7 +42,7 @@ public class Lab03 extends PApplet {
 /**
  **********************************************************************************************************************
  * @file       Lab03.pde
- * @author     Naomi Catwell, 
+ * @author     Naomi Catwell
  * @date       16-February-2024
  * @brief      Express three vocabulary words
  **********************************************************************************************************************
@@ -183,7 +183,7 @@ public void setup(){
   /* Setup the Virtual Coupling Contact Rendering Technique */
   s                   = new HVirtualCoupling((0.75f)); 
   s.h_avatar.setDensity(4); 
-  s.h_avatar.setFill(255,0,0); 
+  s.h_avatar.setDrawable(false); 
   s.h_avatar.setSensor(false);
 
   s.init(world, edgeTopLeftX+worldWidth/2, edgeTopLeftY+2); 
@@ -226,6 +226,7 @@ public void read_layout_config(){
             wall.setNoStroke();
             wall.setStaticBody(true);
             wall.setName("wall");
+            wall.setDrawable(false);
             world.add(wall);
           }
           else if(line.charAt(col) == '1'){
@@ -235,6 +236,7 @@ public void read_layout_config(){
             s1.setNoStroke();
             s1.setStaticBody(true);
             s1.setName("1");
+            s1.setDrawable(false);
             worldBodies.add(s1);
             world.add(s1);
           }
@@ -284,6 +286,7 @@ public void keyPressed(){
     case '1' : layoutIndex = 1; break;
     case '2' : layoutIndex = 2; resetAnimation = true; break;
     case '3' : layoutIndex = 3; break;
+    default: System.out.println("Press 1, 2 or 3 for corresponding word.");  
   }
 }
 /* End IO section */
@@ -309,13 +312,11 @@ public void draw(){
     background(255);
 
     for(FBody body : worldBodies){
-      body.setDrawable(false);
       body.setSensor(true);
     }
 
     for(FBody body : worldBodies){
       if(body.getName() != null && body.getName().equals(Integer.toString(layoutIndex))){
-        body.setDrawable(true);
         if(body.getName().equals("1") || body.getName().equals("2")){
           body.setSensor(false);
         }
@@ -364,7 +365,7 @@ class SimulationThread implements Runnable{
     }
     
     currentFrame++;
-    if(currentFrame - previousFrame > 100){
+    if(currentFrame - previousFrame > 80){
       previousFrame = currentFrame;      
       animate();    
       if(resetAnimation){
