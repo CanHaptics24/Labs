@@ -85,6 +85,7 @@ float distanceTraveled = 0;
 float distancePerStep = 0.1;
 boolean enableAnimation = true;
 boolean resetAnimation = false;
+boolean DEBUG_MODE = true;
 
 
 /* end elements definition *********************************************************************************************/  
@@ -142,7 +143,8 @@ void setup(){
   /* Setup the Virtual Coupling Contact Rendering Technique */
   s                   = new HVirtualCoupling((0.75)); 
   s.h_avatar.setDensity(4); 
-  s.h_avatar.setDrawable(false); 
+  s.h_avatar.setFill(255,0,0);   
+  s.h_avatar.setDrawable(DEBUG_MODE);
   s.h_avatar.setSensor(false);
 
   s.init(world, edgeTopLeftX+worldWidth/2, edgeTopLeftY+2); 
@@ -185,7 +187,7 @@ void read_layout_config(){
             wall.setNoStroke();
             wall.setStaticBody(true);
             wall.setName("wall");
-            wall.setDrawable(false);
+            wall.setDrawable(DEBUG_MODE);
             world.add(wall);
           }
           else if(line.charAt(col) == '1'){
@@ -195,7 +197,7 @@ void read_layout_config(){
             s1.setNoStroke();
             s1.setStaticBody(true);
             s1.setName("1");
-            s1.setDrawable(false);
+            s1.setDrawable(DEBUG_MODE);
             worldBodies.add(s1);
             world.add(s1);
           }
@@ -271,13 +273,15 @@ void draw(){
     background(255);
 
     for(FBody body : worldBodies){
+      body.setDrawable(!DEBUG_MODE);
       body.setSensor(true);
     }
 
     for(FBody body : worldBodies){
       if(body.getName() != null && body.getName().equals(Integer.toString(layoutIndex))){
+        body.setDrawable(DEBUG_MODE);
         if(body.getName().equals("1") || body.getName().equals("2")){
-          body.setSensor(false);
+          body.setSensor(false);          
         }
       }
     }
@@ -319,7 +323,7 @@ class SimulationThread implements Runnable{
     s.h_avatar.setDamping(0);
     for (FBody body : stickList){
       if(layoutIndex == 3 && s.h_avatar.isTouchingBody(body)){
-        s.h_avatar.setDamping(900);
+        s.h_avatar.setDamping(random(600, 900));
       }        
     }
     
