@@ -85,8 +85,7 @@ float distanceTraveled = 0;
 float distancePerStep = 0.1;
 boolean enableAnimation = true;
 boolean resetAnimation = false;
-boolean DEBUG_MODE = true;
-
+boolean DEBUG_MODE = false;
 
 /* end elements definition *********************************************************************************************/  
 
@@ -273,7 +272,7 @@ void draw(){
     background(255);
 
     for(FBody body : worldBodies){
-      body.setDrawable(!DEBUG_MODE);
+      body.setDrawable(false);
       body.setSensor(true);
     }
 

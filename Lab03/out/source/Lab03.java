@@ -128,7 +128,6 @@ boolean enableAnimation = true;
 boolean resetAnimation = false;
 boolean DEBUG_MODE = true;
 
-
 /* end elements definition *********************************************************************************************/  
 
 
@@ -156,7 +155,7 @@ public void setup(){
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
    */
   //haplyBoard          = new Board(this, Serial.list()[0], 0);
-  haplyBoard          = new Board(this, "COM10", 0);
+  haplyBoard          = new Board(this, "COM6", 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
   
@@ -314,7 +313,7 @@ public void draw(){
     background(255);
 
     for(FBody body : worldBodies){
-      body.setDrawable(!DEBUG_MODE);
+      body.setDrawable(false);
       body.setSensor(true);
     }
 
@@ -364,7 +363,7 @@ class SimulationThread implements Runnable{
     s.h_avatar.setDamping(0);
     for (FBody body : stickList){
       if(layoutIndex == 3 && s.h_avatar.isTouchingBody(body)){
-        s.h_avatar.setDamping(900);
+        s.h_avatar.setDamping(random(600, 900));
       }        
     }
     
