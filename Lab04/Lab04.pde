@@ -263,22 +263,6 @@ void setup(){
   thread("SimulationThread");
 }
 /* end setup section ***************************************************************************************************/
-int current_degrees = 0;
-int MAX_DEGREES = 360;
-float radius = 0.25;
-
-public void SetTargetPosition(){
-  current_degrees++;
-  xr = cos(current_degrees) * radius;
-  yr = sin(current_degrees) * radius;
-
-  //println("new position");
-  //println(xr);
-  //println(yr);
-  if(current_degrees >= MAX_DEGREES){
-    current_degrees = 0;
-  }
-}
 public void RandomPosition(int theValue) {
       xr = random(-0.5,0.5);
     yr = random(-0.5,0.5);
@@ -354,20 +338,24 @@ void draw(){
 
 int previousFrame = 0;
 int currentFrame = 0;
-float MAX_DISTANCE = 22;
-float distanceTraveled = 0;
-float distancePerStep = 0.1;
-boolean enableAnimation = true;
-boolean resetAnimation = false;
-boolean DEBUG_MODE = false;
 float displacement = 0.01;
+float tick = 0;
+float radius = 0.5;
 void animate(){
-  yr = 0;
+  /* yr = 0;
   xr += displacement;
   
-    if(xr >= 0.25 || xr <= -0.25){
-      displacement *= -1;
-    }
+  if(xr >= 0.25 || xr <= -0.25){
+    displacement *= -1;
+  } */
+  try{
+    tick += 0.01;
+    xr = cos(tick) * radius;
+    yr = sin(tick) * radius;
+  }
+  catch(Exception e){
+    e.printStackTrace();
+  }
   
 }
 /* end draw section ****************************************************************************************************/
@@ -401,7 +389,7 @@ while(1==1) {
     }
     
     currentFrame++;
-    if(currentFrame - previousFrame > 100){
+    if(currentFrame - previousFrame > 20){
       previousFrame = currentFrame;      
       animate(); 
 
