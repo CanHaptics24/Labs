@@ -253,7 +253,8 @@ void setup(){
   
   target = createShape(ELLIPSE, 0,0, 20, 20);
   target.setStroke(color(0));
-  
+  xr = 0;
+  yr = 0;
   /* setup framerate speed */
   frameRate(baseFrameRate);
     f = createFont("Arial",16,true); // STEP 2 Create Font
@@ -262,7 +263,22 @@ void setup(){
   thread("SimulationThread");
 }
 /* end setup section ***************************************************************************************************/
+int current_degrees = 0;
+int MAX_DEGREES = 360;
+float radius = 0.25;
 
+public void SetTargetPosition(){
+  current_degrees++;
+  xr = cos(current_degrees) * radius;
+  yr = sin(current_degrees) * radius;
+
+  //println("new position");
+  //println(xr);
+  //println(yr);
+  if(current_degrees >= MAX_DEGREES){
+    current_degrees = 0;
+  }
+}
 public void RandomPosition(int theValue) {
       xr = random(-0.5,0.5);
     yr = random(-0.5,0.5);
@@ -335,6 +351,25 @@ void draw(){
     
   }
 }
+
+int previousFrame = 0;
+int currentFrame = 0;
+float MAX_DISTANCE = 22;
+float distanceTraveled = 0;
+float distancePerStep = 0.1;
+boolean enableAnimation = true;
+boolean resetAnimation = false;
+boolean DEBUG_MODE = false;
+float displacement = 0.01;
+void animate(){
+  yr = 0;
+  xr += displacement;
+  
+    if(xr >= 0.25 || xr <= -0.25){
+      displacement *= -1;
+    }
+  
+}
 /* end draw section ****************************************************************************************************/
 
 int noforce = 0;
@@ -349,15 +384,29 @@ while(1==1) {
     // we check the loop is running at the desired speed (with 10% tolerance)
     if(timesincelastloop >= looptime*1000*1.1) {
       float freq = 1.0/timesincelastloop*1000000.0;
-        println("caution, freq droped to: "+freq + " kHz");
+        //println("caution, freq droped to: "+freq + " kHz");        
     }
     else if(iter >= 1000) {
       float freq = 1000.0/(starttime-looptiming)*1000000.0;
-       println("loop running at "  + freq + " kHz");
+       //println("loop running at "  + freq + " kHz");
        iter=0;
        looptiming=starttime;
+
+
+       //SetTargetPosition();
+    }
+    if(timesincelastloop >= looptime*100000) {
+     // println(timesincelastloop);
+      //SetTargetPosition();
     }
     
+    currentFrame++;
+    if(currentFrame - previousFrame > 100){
+      previousFrame = currentFrame;      
+      animate(); 
+
+    }
+
     timetaken=starttime;
     
     renderingForce = true;
