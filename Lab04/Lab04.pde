@@ -340,7 +340,9 @@ int previousFrame = 0;
 int currentFrame = 0;
 float displacement = 0.01;
 float tick = 0;
+float last_tick = 0;
 float radius = 0.5;
+int direction = 1;
 void animate(){
   /* yr = 0;
   xr += displacement;
@@ -350,8 +352,16 @@ void animate(){
   } */
   try{
     tick += 0.01;
-    xr = cos(tick) * radius;
+    xr = radius + cos(tick) * radius;
     yr = sin(tick) * radius;
+
+    if(xr  <= 0.0001 && yr  <= 0.0001 && tick - last_tick > 2){
+      last_tick = tick;
+      direction *= -1;
+      println(xr);
+
+    }
+    xr = direction * radius + cos(tick) * direction * radius;
   }
   catch(Exception e){
     e.printStackTrace();
