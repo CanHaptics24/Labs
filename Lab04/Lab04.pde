@@ -336,6 +336,7 @@ void draw(){
   }
 }
 
+import java.lang.Math;
 int previousFrame = 0;
 int currentFrame = 0;
 float displacement = 0.01;
@@ -343,6 +344,12 @@ float tick = 0;
 float last_tick = 0;
 float radius = 0.5;
 int direction = 1;
+int sign = 1;
+
+float waveFormValue(float x, int functionSign){
+  return Math.signum(functionSign * sin((PI * x)/2)) * sqrt(1 - (pow((acos(sin(PI*x - PI/2)))/PI, 2))); 
+}
+
 void animate(){
   /* yr = 0;
   xr += displacement;
@@ -350,7 +357,7 @@ void animate(){
   if(xr >= 0.25 || xr <= -0.25){
     displacement *= -1;
   } */
-  try{
+ /*  try{
     tick += 0.01;
     xr = radius + cos(tick) * radius;
     yr = sin(tick) * radius;
@@ -365,7 +372,25 @@ void animate(){
   }
   catch(Exception e){
     e.printStackTrace();
+  } */
+  
+  xr += displacement;
+  println(xr);
+  if(xr  <= -0.5){
+    sign = 1;
+    displacement *= -1;
   }
+  else if(xr  >= 1 /*&& yr  <= 0.0001 && tick - last_tick > 2*/){
+    sign = -1;
+    displacement *= -1;
+  }
+ /*  if(xr >= 0.75 || xr <= 0){
+    displacement *= -1;
+  } */
+
+  yr = waveFormValue(4*xr, sign) * 0.25;
+
+
   
 }
 /* end draw section ****************************************************************************************************/
