@@ -1,10 +1,10 @@
 /**
  **********************************************************************************************************************
- * @file       sketch_2_Hello_Wall.pde
- * @author     Steve Ding, Colin Gallacher, Antoine Weill--Duflos
+ * @file       Lab04.pde
+ * @author     Noami Catwell
  * @version    V1.0.0
- * @date       09-February-2021
- * @brief      PID example with random position of a target
+ * @date       24-February-2024
+ * @brief      PID with path tracing
  **********************************************************************************************************************
  * @attention
  *
@@ -17,6 +17,7 @@ import processing.serial.*;
 import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
 import controlP5.*;
+import java.lang.Math;
 /* end library imports *************************************************************************************************/  
 
 
@@ -330,68 +331,34 @@ void draw(){
   /* put graphical code here, runs repeatedly at defined framerate in setup, else default at 60fps: */
   if(renderingForce == false){
     background(255); 
-    update_animation(angles.x*radsPerDegree, angles.y*radsPerDegree, posEE.x, posEE.y);
-    
-    
+    update_animation(angles.x*radsPerDegree, angles.y*radsPerDegree, posEE.x, posEE.y);    
   }
 }
 
-import java.lang.Math;
 int previousFrame = 0;
 int currentFrame = 0;
 float displacement = 0.01;
-float tick = 0;
-float last_tick = 0;
-float radius = 0.5;
-int direction = 1;
+float radius = 0.25;
 int sign = 1;
+int domainAdjustment = 4;
 
 float waveFormValue(float x, int functionSign){
   return Math.signum(functionSign * sin((PI * x)/2)) * sqrt(1 - (pow((acos(sin(PI*x - PI/2)))/PI, 2))); 
 }
 
 void animate(){
-  /* yr = 0;
-  xr += displacement;
-  
-  if(xr >= 0.25 || xr <= -0.25){
-    displacement *= -1;
-  } */
- /*  try{
-    tick += 0.01;
-    xr = radius + cos(tick) * radius;
-    yr = sin(tick) * radius;
-
-    if(xr  <= 0.0001 && yr  <= 0.0001 && tick - last_tick > 2){
-      last_tick = tick;
-      direction *= -1;
-      println(xr);
-
-    }
-    xr = direction * radius + cos(tick) * direction * radius;
-  }
-  catch(Exception e){
-    e.printStackTrace();
-  } */
-  
   xr += displacement;
   println(xr);
   if(xr  <= -0.5){
     sign = 1;
     displacement *= -1;
   }
-  else if(xr  >= 1 /*&& yr  <= 0.0001 && tick - last_tick > 2*/){
+  else if(xr  >= 1){
     sign = -1;
     displacement *= -1;
   }
- /*  if(xr >= 0.75 || xr <= 0){
-    displacement *= -1;
-  } */
 
-  yr = waveFormValue(4*xr, sign) * 0.25;
-
-
-  
+  yr = waveFormValue(domainAdjustment*xr, sign) * radius;  
 }
 /* end draw section ****************************************************************************************************/
 
@@ -407,20 +374,13 @@ while(1==1) {
     // we check the loop is running at the desired speed (with 10% tolerance)
     if(timesincelastloop >= looptime*1000*1.1) {
       float freq = 1.0/timesincelastloop*1000000.0;
-        //println("caution, freq droped to: "+freq + " kHz");        
+        println("caution, freq droped to: "+freq + " kHz");        
     }
     else if(iter >= 1000) {
       float freq = 1000.0/(starttime-looptiming)*1000000.0;
-       //println("loop running at "  + freq + " kHz");
+       println("loop running at "  + freq + " kHz");
        iter=0;
        looptiming=starttime;
-
-
-       //SetTargetPosition();
-    }
-    if(timesincelastloop >= looptime*100000) {
-     // println(timesincelastloop);
-      //SetTargetPosition();
     }
     
     currentFrame++;
@@ -483,7 +443,6 @@ while(1==1) {
         fEE.y=0.0;
       }
     widgetOne.set_device_torques(graphics_to_device(fEE).array());
-    //println(f_y);
       /* end haptic wall force calculation */
       
     }
